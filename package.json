@@ -1,0 +1,43 @@
+{
+  "name": "kisaan-saathi",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test \"lib/**/*.test.ts\"",
+    "e2e": "playwright test",
+    "db:migrate": "node scripts/migrate.mjs",
+    "schemes:refresh": "node --experimental-strip-types scripts/refresh-schemes.ts",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
+    "build:standalone": "node standalone/build.mjs",
+    "crops:build": "node --experimental-strip-types scripts/build-crop-data.ts",
+    "soil:build": "node --experimental-strip-types scripts/build-soil-data.ts"
+  },
+  "dependencies": {
+    "next": "15.5.28",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.0",
+    "@playwright/test": "^1.56.0",
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "15.5.28",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.0"
+  }
+}

@@ -1,0 +1,199 @@
+{
+ "version": 1,
+ "source": "Soil Health Card scheme, village-wise nutrient status 2023-24 and 2024-25 (Dept. of Agriculture & Farmers Welfare)",
+ "generatedAt": "2026-10-27T19:16:07.196Z",
+ "states": [
+  {
+   "state": "Andaman and Nicobar Islands",
+   "file": "andaman-and-nicobar-islands.json",
+   "districts": 3,
+   "samples": 10603
+  },
+  {
+   "state": "Andhra Pradesh",
+   "file": "andhra-pradesh.json",
+   "districts": 26,
+   "samples": 705819
+  },
+  {
+   "state": "Arunachal Pradesh",
+   "file": "arunachal-pradesh.json",
+   "districts": 25,
+   "samples": 101565
+  },
+  {
+   "state": "Assam",
+   "file": "assam.json",
+   "districts": 34,
+   "samples": 1297531
+  },
+  {
+   "state": "Bihar",
+   "file": "bihar.json",
+   "districts": 38,
+   "samples": 746900
+  },
+  {
+   "state": "Chhattisgarh",
+   "file": "chhattisgarh.json",
+   "districts": 33,
+   "samples": 334824
+  },
+  {
+   "state": "Goa",
+   "file": "goa.json",
+   "districts": 2,
+   "samples": 18551
+  },
+  {
+   "state": "Gujarat",
+   "file": "gujarat.json",
+   "districts": 33,
+   "samples": 794898
+  },
+  {
+   "state": "Haryana",
+   "file": "haryana.json",
+   "districts": 22,
+   "samples": 857951
+  },
+  {
+   "state": "Himachal Pradesh",
+   "file": "himachal-pradesh.json",
+   "districts": 12,
+   "samples": 86521
+  },
+  {
+   "state": "Jammu and Kashmir",
+   "file": "jammu-and-kashmir.json",
+   "districts": 20,
+   "samples": 141584
+  },
+  {
+   "state": "Jharkhand",
+   "file": "jharkhand.json",
+   "districts": 24,
+   "samples": 344476
+  },
+  {
+   "state": "Karnataka",
+   "file": "karnataka.json",
+   "districts": 31,
+   "samples": 692166
+  },
+  {
+   "state": "Kerala",
+   "file": "kerala.json",
+   "districts": 14,
+   "samples": 104175
+  },
+  {
+   "state": "Ladakh",
+   "file": "ladakh.json",
+   "districts": 2,
+   "samples": 1405
+  },
+  {
+   "state": "Madhya Pradesh",
+   "file": "madhya-pradesh.json",
+   "districts": 55,
+   "samples": 1574309
+  },
+  {
+   "state": "Maharashtra",
+   "file": "maharashtra.json",
+   "districts": 34,
+   "samples": 731087
+  },
+  {
+   "state": "Manipur",
+   "file": "manipur.json",
+   "districts": 1,
+   "samples": 343
+  },
+  {
+   "state": "Meghalaya",
+   "file": "meghalaya.json",
+   "districts": 12,
+   "samples": 37940
+  },
+  {
+   "state": "Mizoram",
+   "file": "mizoram.json",
+   "districts": 11,
+   "samples": 34877
+  },
+  {
+   "state": "Nagaland",
+   "file": "nagaland.json",
+   "districts": 17,
+   "samples": 123059
+  },
+  {
+   "state": "Odisha",
+   "file": "odisha.json",
+   "districts": 30,
+   "samples": 505083
+  },
+  {
+   "state": "Puducherry",
+   "file": "puducherry.json",
+   "districts": 2,
+   "samples": 5040
+  },
+  {
+   "state": "Punjab",
+   "file": "punjab.json",
+   "districts": 23,
+   "samples": 198008
+  },
+  {
+   "state": "Rajasthan",
+   "file": "rajasthan.json",
+   "districts": 41,
+   "samples": 608014
+  },
+  {
+   "state": "Sikkim",
+   "file": "sikkim.json",
+   "districts": 6,
+   "samples": 74994
+  },
+  {
+   "state": "Tamil Nadu",
+   "file": "tamil-nadu.json",
+   "districts": 37,
+   "samples": 653145
+  },
+  {
+   "state": "Telangana",
+   "file": "telangana.json",
+   "districts": 32,
+   "samples": 141288
+  },
+  {
+   "state": "Tripura",
+   "file": "tripura.json",
+   "districts": 8,
+   "samples": 51858
+  },
+  {
+   "state": "Uttar Pradesh",
+   "file": "uttar-pradesh.json",
+   "districts": 75,
+   "samples": 1310768
+  },
+  {
+   "state": "Uttarakhand",
+   "file": "uttarakhand.json",
+   "districts": 13,
+   "samples": 154552
+  },
+  {
+   "state": "West Bengal",
+   "file": "west-bengal.json",
+   "districts": 22,
+   "samples": 726058
+  }
+ ]
+}

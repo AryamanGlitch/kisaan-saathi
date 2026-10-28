@@ -1,0 +1,161 @@
+/*
+ * Frosted-glass look, shared by the Next.js app (imported from globals.css) and the single-file build
+ * (standalone/build.mjs inlines it). Plain CSS only: no Tailwind directives, so both builds can use it.
+ * Don't put one of these classes on an element alongside a utility that sets the same property:
+ * the two builds layer this file differently, so which one wins is not guaranteed.
+ */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.84);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-card: rgba(255, 255, 255, 0.68);
+  --glass-header: rgba(255, 255, 255, 0.92);
+  --page-bg: #f3f6f4;
+  /* Served from public/ (2000 × 1269 WebP, 128 KB). The single-file build swaps in an inline copy (standalone/build.mjs).
+     If it fails to load, the gradient underneath still shows. Rename the file if you replace it: the
+     service worker caches /images/ cache-first. */
+  --page-photo: url("/images/rice-field-2000.webp");
+}
+
+html {
+  background: var(--page-bg);
+}
+
+/* Fixed backdrop as a pseudo-element: `background-attachment: fixed` is ignored or janky on mobile Safari. */
+.app-bg {
+  background: transparent;
+}
+.app-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2) 50%, rgba(2, 44, 34, 0.1)),
+    var(--page-photo) 50% center / cover no-repeat,
+    radial-gradient(ellipse at 15% 10%, #d9ecdf 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 90%, #cfe3d5 0%, transparent 55%),
+    var(--page-bg);
+}
+
+/* Tall screens (phones, portrait tablets, narrow windows): `cover` would crop to the middle 30–50% of the
+   photo. Instead show it at full screen width or 55% of the height (whichever is larger), on the bottom,
+   and continue its sky upward, fading over the photo's top edge so there is no seam.
+   #b9d4db is the photo's top-row colour; 1.576 is its width / height; --edge is where its top edge falls. */
+@media (max-aspect-ratio: 1/1) {
+  .app-bg::before {
+    --edge: calc(100% - max(100vw / 1.576, 55vh));
+    background:
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2) 50%, rgba(2, 44, 34, 0.1)),
+      linear-gradient(to bottom, #a8c8d6 0%, #b9d4db var(--edge), rgba(185, 212, 219, 0) calc(var(--edge) + 16vh)),
+      var(--page-photo) 50% 100% / max(100%, calc(55vh * 1.576)) auto no-repeat,
+      var(--page-bg);
+  }
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 24px 48px -12px rgba(18, 55, 30, 0.08),
+    0 4px 16px 0 rgba(0, 0, 0, 0.03),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.4) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.3) 0%, transparent 25%);
+}
+
+.glass-header {
+  background: var(--glass-header);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* A content block: replaces the old "rule above, then content" section style. glass-box = same, no padding. */
+.glass-card,
+.glass-box {
+  background: var(--glass-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px -2px rgba(20, 108, 46, 0.06);
+}
+.glass-card { padding: 1.25rem; }
+@media (min-width: 640px) {
+  .glass-card { padding: 1.5rem; }
+}
+
+/* Rounded list box with hairline dividers (home "What do you need?", forecast days, etc.). */
+.glass-list {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(209, 213, 219, 0.6);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.glass-list > li + li { border-top: 1px solid rgba(209, 213, 219, 0.6); }
+
+.eyebrow {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-leaf, #146c2e);
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  background: var(--color-leaf, #146c2e);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(6, 78, 59, 0.2);
+}
+
+.icon-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  border: 1px solid;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .icon-tile { transform: scale(1.05); }
+/* Small round badge (e.g. the weather symbol next to today's temperature). */
+.icon-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 1px solid;
+}
+.tone-leaf { background: #eef7f1; border-color: #a7f3d0; color: #146c2e; }
+.tone-amber { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+.tone-teal { background: #f0fdfa; border-color: #99f6e4; color: #0f766e; }
+.tone-blue { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+.tone-earth { background: #fdf6ee; border-color: #ead2b4; color: #8a4b14; }
+.tone-indigo { background: #eef2ff; border-color: #c7d2fe; color: #4338ca; }
+.tone-violet { background: #f5f3ff; border-color: #ddd6fe; color: #6d28d9; }
+
+/* Small lift on hover for buttons and tappable cards. */
+.lift { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s, color 0.2s; }
+.lift:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -4px rgba(20, 108, 46, 0.12); }
+.lift:disabled:hover { transform: none; box-shadow: none; }
+
+.nudge { transition: transform 0.2s; }
+.group:hover .nudge { transform: translateX(4px); }
+
+::selection { background: #d1fae5; color: #146c2e; }

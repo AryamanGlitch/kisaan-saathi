@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import "./theme.css" layer(components);
+
+/*
+ * Design tokens. Frosted-glass panels over a soft green page, near-black text, one green for actions
+ * (contrast 6.5:1 on white). Plus Jakarta Sans covers Latin only; Hindi falls through to the system
+ * Devanagari fonts Android already ships, so the web font is a nicety, never a blocker on slow networks.
+ */
+@theme {
+  --color-ink: #111827;
+  --color-paper: #ffffff;
+  --color-leaf: #146c2e;
+  --color-leaf-dark: #0e5222;
+  --color-leaf-wash: #eef7f1;
+  --color-rule: #d5dad6;
+  --color-muted: #4b5563;
+  --color-alert: #b42318;
+  --color-alert-wash: #fdecea;
+  --color-caution: #7a4b00;
+  --color-caution-wash: #fff4dc;
+  --radius-lg: 0.75rem;
+  --font-sans: var(--font-jakarta), system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Devanagari", "Nirmala UI", sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  color: var(--color-ink);
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-leaf);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

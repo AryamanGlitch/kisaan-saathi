@@ -1,0 +1,19 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+.env
+.env.local
+.env.*.local
+.DS_Store
+standalone/dist/
+
+# Raw national datasets are over GitHub's 100 MB file limit. Keep them out of git and commit only
+# the converted files (public/data/soil, public/data/crops). See docs/SOIL_DATA.md and docs/CROP_DATA.md.
+/*.csv
+/data/raw/
+
+# Playwright output
+/test-results/
+/playwright-report/
