@@ -107,7 +107,7 @@ All variables are **server-only**. Never use the `NEXT_PUBLIC_` prefix, and neve
 - **Assistant guardrails** (`lib/assistant/`):
   - **Grounded context.** The model gets verified context (weather, sowing windows, schemes, helplines) and must cite only those source ids. Other citations are dropped.
   - **No doses.** A dose filter removes text like "2 ml/litre" or "120 kg/ha" and replaces it with label and KVK guidance. The app has no verified pesticide or fertilizer dosage database.
-  - **Crisis routing.** Self-harm and poisoning messages, in Hindi and English, get a fixed response with Tele-MANAS 14416 and 112. They never reach the model, and this works without an API key.
+  - **Crisis routing.** Self-harm and poisoning messages, in Hindi, romanized Hindi and English, get a fixed response with Tele-MANAS 14416 and 112. They never reach the model, are never rate-limited, and this works without an API key. Keywords can't cover every wording, so the model can also flag a message as crisis or poisoning; the app then shows the same fixed response instead of the model's text. Add any missed wording to the phrase lists in `lib/assistant/assistant.test.ts`.
   - **Validation and limits.** Model output must match a JSON schema, or the user sees an error. Requests are limited to 6 per minute per client and 60 per minute per server instance.
 - **Schemes** (`lib/schemes/`):
   - Figures are entered by a person from official sources, with a verification date.

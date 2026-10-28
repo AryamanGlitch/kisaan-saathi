@@ -4,7 +4,8 @@ import type { AssistantReply, ReplyKind } from "./types.ts";
 export const REPLY_JSON_SCHEMA = {
   type: "object",
   properties: {
-    kind: { type: "string", enum: ["followup", "answer", "out_of_scope"] },
+    // "crisis" and "poisoning" are safety signals only: the app replaces them with its fixed helpline reply.
+    kind: { type: "string", enum: ["followup", "answer", "out_of_scope", "crisis", "poisoning"] },
     followUpQuestions: { type: "array", items: { type: "string" }, maxItems: 3 },
     possibleProblem: { type: "string" },
     why: { type: "string" },
@@ -17,6 +18,12 @@ export const REPLY_JSON_SCHEMA = {
   },
   required: ["kind", "followUpQuestions", "possibleProblem", "why", "checkNext", "actions", "warnings", "whenToSeeExpert", "sourceIds", "confidence"],
 } as const;
+
+/** The model flagged self-harm or poisoning that the keyword check missed. Read before parseReply, which rejects these kinds. */
+export function modelSafetySignal(raw: unknown): "crisis" | "poisoning" | null {
+  const kind = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>).kind : null;
+  return kind === "crisis" || kind === "poisoning" ? kind : null;
+}
 
 export class ReplyFormatError extends Error {
   constructor(message: string) {

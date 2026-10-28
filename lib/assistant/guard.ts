@@ -8,25 +8,68 @@ import type { AssistantReply } from "./types.ts";
  */
 export type MessageClass = "crisis" | "poisoning" | "chemical" | "normal";
 
+/**
+ * CRISIS and POISONING run on normalize()d text: lower case, nukta removed (ज़हर → जहर), chandrabindu → anusvara
+ * (हूँ → हूं). So patterns are written without nukta or chandrabindu. \b does not work next to Devanagari, so
+ * Hindi patterns don't use it. Missing a real crisis is far worse than showing a helpline by mistake, but
+ * ordinary farm questions ("Can I eat vegetables after spraying?", "फसल मर रही है") must not match.
+ */
+const POISON_EN = "(?:pesticides?|insecticides?|poison|weedicides?|herbicides?|rat\\s*poison|sulphas|sulfas|celphos|phosphide)";
+const POISON_HI = "(?:कीटनाशक|जहर|सल्फास|सेल्फास|सेल्फॉस|चूहे\\s*मार)";
+const POISON_ROMAN = "(?:zeh?e?r|zahar|jahar|keetnashak|kitnashak|sulphas|sulfas|celphos|selfas)";
+
 const CRISIS = [
-  /\b(kill|end)\s+(myself|my life)\b/i,
-  /\bsuicid/i,
-  /\bwant to die\b/i,
-  /आत्महत्या/,
-  /ख़ुदकुशी|खुदकुशी/,
-  /जान\s*दे\s*(दूँ|दूं|दूंगा|दूँगा|दूंगी|दूँगी|दे)/,
-  /मरना\s*चाहत/,
-  /जीना\s*नहीं\s*चाहत/,
-  /\b(khudkushi|aatmahatya|atmahatya)\b/i,
+  /\b(kill|hang|hurt|harm|end)(ing)?\s+(myself|my\s*self|my\s+life)\b/,
+  /\bsuicid/,
+  /\b(want|wanna)\s+(to\s+)?die\b/,
+  /\bi\s*('?m|am)?\s+(going|ready|wish)\s+to\s+die\b|\bwish\s+i\s+(was|were)\s+dead\b/,
+  /\b(don'?t|do not|no longer)\s+want\s+to\s+(live|be alive)\b/,
+  /\b(take|end)\s+my\s+(own\s+)?life\b/,
+  /\b(better off dead|end it all|no reason to live)\b/,
+  new RegExp(`\\b(i'?ll|i will|i am going to|i'?m going to|gonna)\\s+(drink|eat|swallow|take|consume)\\s+(some\\s+|the\\s+)?${POISON_EN}`),
+  /आत्महत्या|खुदकुशी/,
+  /जान\s+दे|जान\s*दे(ना|नी|ने|\s*दू)|अपनी\s+जान\s+ले/,
+  /मरना\s*चाह|मर\s*जाना\s*चाह|मर\s*जाऊं|मरने\s*(का|की)\s*(मन|इच्छा|सोच)/,
+  /जीना\s*नहीं\s*चाह|जीने\s*(का|की)\s*(मन|इच्छा)\s*नहीं|जीने\s*का\s*कोई\s*(मतलब|फायदा)\s*नहीं/,
+  /फांसी\s*(लगा|पर\s*लटक)|खुद\s*को\s*(मार|खत्म)/,
+  new RegExp(`${POISON_HI}\\s*(खा|पी)\\s*(लूंगा|लूंगी|लूं|लेना\\s*चाह)`),
+  /\b(khudkh?ushi|aa?tmahatya)\b/,
+  /\bmar\s*(jaa?(un|oon|on|u)(ga|gi)?|jaa?na\s*chah|na\s*chah)/,
+  /\b(jeena|jina|jeene|jine)\s*(ka\s*(man|mann)\s*)?nahi/,
+  /\bjaan\s*(de\s*(du|doon|dun)|dena|dedu)|\bapni\s+jaan\s+le/,
+  /\b(f|ph)aa?nsi\s*(laga|par\s*latak)/,
+  new RegExp(`\\b${POISON_ROMAN}\\s*(pi|pee|kha)\\s*(lunga|lungi|loonga|lu|loon)\\b`),
 ];
 
+// The poison must follow the verb closely: "insects ate leaves after pesticide" or "पानी पी लिया फिर दवा छिड़की"
+// are not poisoning. "दवा खा ली" / "dawa kha li" usually means taking medicine, so दवा/spray only count with "drink".
+const DET_EN = "(?:some\\s+|the\\s+|a\\s+|a\\s+little\\s+|little\\s+|that\\s+)?";
+const NEAR_HI = "\\s*(?:\\S+\\s+)?";
+
 const POISONING = [
-  /\b(drank|swallowed|ate|drink|swallow)\b.*\b(pesticide|insecticide|poison|weedicide|herbicide)\b/i,
-  /\b(pesticide|insecticide|chemical)\s+poisoning\b/i,
-  /(कीटनाशक|ज़हर|जहर|दवा).*(पी\s*लिया|पी\s*ली|पी\s*गया|पी\s*गई|निगल)/,
-  /(पी\s*लिया|पी\s*ली|निगल\s*लिया).*(कीटनाशक|ज़हर|जहर)/,
-  /\bzeh?ar\s+pi\b/i,
+  new RegExp(`\\b(drank|drunk|swallowed|consumed|ate|eaten)\\s+${DET_EN}${POISON_EN}`),
+  // "took pesticide to the field" is ordinary; "took poison / sulphas" is not.
+  new RegExp(`\\b(took|taken)\\s+${DET_EN}(poison|rat\\s*poison|sulphas|sulfas|celphos|phosphide)\\b`),
+  new RegExp(`\\b(drank|drunk|swallowed)\\s+${DET_EN}(spray|chemical|dawa|dawai)\\b`),
+  /\b(pesticide|insecticide|chemical)\s+poisoning\b/,
+  new RegExp(`(${POISON_HI}|दवा|दवाई|स्प्रे)${NEAR_HI}(पी\\s*(लिया|ली|लिए|गया|गई)|पीकर|निगल)`),
+  new RegExp(`(पी|निगल)\\s*(लिया|ली)${NEAR_HI}${POISON_HI}`),
+  new RegExp(`${POISON_HI}${NEAR_HI}(खा\\s*(लिया|ली|लिए|गया|गई)|खाकर)`),
+  new RegExp(`\\b${POISON_ROMAN}\\s*(pi|pee|kha)\\s*(liya|li|liye|gaya|gayi|gai|kar)\\b`),
+  /\b(dawa|dawai|spray)\s*(pi|pee)\s*(liya|li|liye|gaya|gayi|gai|kar)\b/,
+  /\bzeh?ar\s+pi\b/,
 ];
+
+/** Lower case, NFC, nukta removed, chandrabindu → anusvara, zero-width joiners removed, curly apostrophes straightened. */
+export function normalize(text: string): string {
+  return text
+    .normalize("NFC")
+    .replace(/़/g, "")
+    .replace(/ँ/g, "ं")
+    .replace(/[‌‍]/g, "")
+    .replace(/[‘’]/g, "'")
+    .toLowerCase();
+}
 
 const CHEMICAL = [
   /\b(pesticide|insecticide|fungicide|herbicide|weedicide|spray|dose|dosage|ml|litre|liter|mix|tank)\b/i,
@@ -34,8 +77,9 @@ const CHEMICAL = [
 ];
 
 export function classifyMessage(text: string): MessageClass {
-  if (CRISIS.some((r) => r.test(text))) return "crisis";
-  if (POISONING.some((r) => r.test(text))) return "poisoning";
+  const n = normalize(text);
+  if (CRISIS.some((r) => r.test(n))) return "crisis";
+  if (POISONING.some((r) => r.test(n))) return "poisoning";
   if (CHEMICAL.some((r) => r.test(text))) return "chemical";
   return "normal";
 }

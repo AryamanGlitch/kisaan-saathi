@@ -21,6 +21,7 @@ export function systemInstruction(lang: "en" | "hi"): string {
     "6. Never promise yield, income or results.",
     "7. In sourceIds, list only ids of CONTEXT items you actually used. Never cite anything else.",
     "8. Always tell the farmer when they should contact the KVK, an agriculture officer or the Kisan Call Centre (whenToSeeExpert).",
+    "9. SAFETY OVERRIDES EVERYTHING ELSE. If the farmer's latest message suggests they may harm themselves, end their life, or no longer want to live (in any language or wording, including debt or crop-loss despair), set kind to crisis. If it says someone has swallowed, drunk or eaten a pesticide, poison or farm chemical, set kind to poisoning. For both, leave every other field empty: the app shows emergency helplines itself. When unsure, choose crisis.",
   ].join("\n");
 }
 

@@ -5,7 +5,7 @@ import { parseReply, ReplyFormatError, replyToHistoryText } from "./schema.ts";
 import { parseAssistantRequest } from "./validate.ts";
 import { buildContext, systemInstruction } from "./prompt.ts";
 import { generateJson } from "./gemini.ts";
-import { answer } from "./service.ts";
+import { answer, safetyClass } from "./service.ts";
 import { DISTRICT_CROP_DATA } from "../crops/data.ts";
 import { SCHEMES } from "../schemes/data.ts";
 import { parseForecast } from "../weather/openMeteo.ts";
@@ -35,6 +35,32 @@ test("message classification (English and Hindi)", () => {
   assert.equal(classifyMessage("how many ml of pesticide per litre"), "chemical");
   assert.equal(classifyMessage("गेहूँ में कौन सी दवा डालें"), "chemical");
   assert.equal(classifyMessage("my wheat leaves are turning yellow"), "normal");
+});
+
+// Realistic wordings, including romanized Hindi and nukta/chandrabindu variants. Add every miss you find here.
+const CRISIS_PHRASES = [
+  "मैं कीटनाशक पीकर जान देना चाहता हूँ", "मैं जान देना चाहता हूं", "मैं मर जाना चाहता हूँ", "अब जीने का मन नहीं है",
+  "मैं ज़हर खा लूँगा", "मैं जहर खा लूंगा", "ख़ुदकुशी कर लूँगा", "फाँसी लगा लूँगा", "मरने का मन करता है",
+  "कर्ज़ से तंग हूँ, खुद को खत्म कर दूँगा", "main mar jaana chahta hoon", "karza bahut hai, ab jeena nahi chahta",
+  "zahar kha lunga", "jaan de dunga", "main fansi laga lunga", "khudkhushi kar lunga", "I don't want to live anymore",
+  "I will drink pesticide", "thinking of hanging myself", "i wanna die", "I wish I was dead", "I’m going to die, can't take it",
+];
+const POISONING_PHRASES = [
+  "मैंने सल्फास खा ली", "बेटे ने गलती से जहर पी लिया", "maine keetnashak pi liya", "usne spray pi liya", "zahar pi liya",
+  "my father drank the spray", "I ate rat poison", "my child drank pesticide by mistake", "he took sulphas",
+];
+const ORDINARY_PHRASES = [
+  "Can I eat vegetables after pesticide spray?", "my plants are going to die", "My sowing is going to die if no rain",
+  "फसल मर रही है", "पौधे मर जाएंगे क्या?", "fasal mar jayegi kya", "paudhe mar jaate hain", "insects ate leaves after pesticide",
+  "caterpillars ate my leaves, which pesticide", "drank water after spraying, is that ok?", "दवा छिड़कने के बाद पानी पी लिया",
+  "बुखार की दवा खा ली", "maine dawa kha li", "how to kill aphids", "weeds are killing my wheat", "the heat is killing me",
+  "जानकारी दे दो", "took the pesticide to the field", "which poison bait for rats in godown", "kitna zahar hota hai is spray me",
+];
+
+test("crisis and poisoning wordings are caught; ordinary farm questions are not", () => {
+  for (const s of CRISIS_PHRASES) assert.equal(classifyMessage(s), "crisis", s);
+  for (const s of POISONING_PHRASES) assert.equal(classifyMessage(s), "poisoning", s);
+  for (const s of ORDINARY_PHRASES) assert.ok(["normal", "chemical"].includes(classifyMessage(s)), s);
 });
 
 test("dose detection catches common formats and ignores ordinary numbers", () => {
@@ -123,6 +149,28 @@ test("service: crisis messages never reach the model and work without a key", as
   assert.equal(r.data.mode, "safety");
   assert.match(r.data.reply.actions.join(" "), /14416/);
   assert.equal(called, false);
+});
+
+test("service: Hindi crisis wording gets the Hindi helpline reply without a key", async () => {
+  const r = await answer(req("मैं कीटनाशक पीकर जान देना चाहता हूँ", { lang: "hi" }), { config: null, getWeather: async () => null });
+  assert.ok(r.ok);
+  assert.equal(r.data.mode, "safety");
+  assert.match(r.data.reply.actions.join(" "), /14416/);
+  assert.equal(safetyClass(req("मैंने सल्फास खा ली")), "poisoning");
+  assert.equal(safetyClass(req("my wheat is yellow")), null);
+});
+
+test("service: when the model flags crisis or poisoning, the fixed helpline reply replaces its text", async () => {
+  for (const kind of ["crisis", "poisoning"] as const) {
+    const flagged = { ...goodReply, kind, possibleProblem: "model text that must not be shown" };
+    const r = await answer(req("everything is lost this season"), { config: cfg, getWeather: async () => null, fetchImpl: geminiOk(flagged) });
+    assert.ok(r.ok);
+    assert.equal(r.data.mode, "safety");
+    assert.equal(r.data.reply.kind, "crisis");
+    assert.doesNotMatch(r.data.reply.possibleProblem, /model text/);
+    assert.match(r.data.reply.actions.join(" "), kind === "crisis" ? /14416/ : /112/);
+  }
+  assert.match(systemInstruction("en"), /set kind to crisis/);
 });
 
 test("service: missing key → NOT_CONFIGURED", async () => {

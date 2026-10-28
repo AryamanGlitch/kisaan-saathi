@@ -9,7 +9,7 @@ import type { WeatherReport } from "../weather/openMeteo.ts";
 import { generateJsonWithFallback, type GeminiConfig, type GeminiContent } from "./gemini.ts";
 import { classifyMessage, crisisReply, SAFE_DOSE_TEXT, scrubDoses } from "./guard.ts";
 import { buildContext, systemInstruction } from "./prompt.ts";
-import { parseReply, ReplyFormatError } from "./schema.ts";
+import { modelSafetySignal, parseReply, ReplyFormatError } from "./schema.ts";
 import type { AssistantRequest, AssistantResponse, CitedSource } from "./types.ts";
 
 export interface AssistantDeps {
@@ -26,15 +26,21 @@ function cite(ids: string[]): CitedSource[] {
   });
 }
 
-export async function answer(req: AssistantRequest, deps: AssistantDeps): Promise<ApiResult<AssistantResponse>> {
-  const last = req.messages[req.messages.length - 1]?.text ?? "";
-  const cls = classifyMessage(last);
+/** Self-harm or poisoning in the latest message. The route uses this to answer before rate limiting. */
+export function safetyClass(req: AssistantRequest): "crisis" | "poisoning" | null {
+  const cls = classifyMessage(req.messages[req.messages.length - 1]?.text ?? "");
+  return cls === "crisis" || cls === "poisoning" ? cls : null;
+}
 
+function safetyResponse(kind: "crisis" | "poisoning", lang: AssistantRequest["lang"], model: string | null): AssistantResponse {
+  const reply = crisisReply(kind, lang);
+  return { reply, sources: cite(reply.sourceIds), redacted: false, mode: "safety", model, usedContext: { weather: false, sowingWindows: false, schemes: false } };
+}
+
+export async function answer(req: AssistantRequest, deps: AssistantDeps): Promise<ApiResult<AssistantResponse>> {
   // Safety first: these never go to the model, and work even without an API key.
-  if (cls === "crisis" || cls === "poisoning") {
-    const reply = crisisReply(cls, req.lang);
-    return ok({ reply, sources: cite(reply.sourceIds), redacted: false, mode: "safety", model: null, usedContext: { weather: false, sowingWindows: false, schemes: false } });
-  }
+  const cls = safetyClass(req);
+  if (cls) return ok(safetyResponse(cls, req.lang, null));
 
   if (!deps.config) return fail("NOT_CONFIGURED", "Set GEMINI_API_KEY on the server to enable the assistant");
 
@@ -61,6 +67,10 @@ export async function answer(req: AssistantRequest, deps: AssistantDeps): Promis
 
   const { result: res, model: usedModel } = await generateJsonWithFallback(deps.config, systemInstruction(req.lang), contents, deps.fetchImpl);
   if (!res.ok) return res;
+
+  // The keyword check can't know every wording, so the model can flag distress too. Its own text is never shown then.
+  const signal = modelSafetySignal(res.data);
+  if (signal) return ok(safetyResponse(signal, req.lang, usedModel));
 
   let reply;
   try {
