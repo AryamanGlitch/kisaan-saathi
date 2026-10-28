@@ -18,6 +18,7 @@ import type { LocationSource } from "@/lib/location/types";
 const SOURCE_TEXT: Record<LocationSource, StringKey> = {
   gps: "myFarm.sourceGps",
   "manual-geocoded": "myFarm.sourceManual",
+  "manual-district": "myFarm.sourceDistrict",
   "manual-unverified": "myFarm.sourceUnverified",
 };
 

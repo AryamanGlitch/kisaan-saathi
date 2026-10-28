@@ -41,7 +41,11 @@ export function WeatherView() {
 
   return (
     <div className="space-y-8">
-      {location && <p className="text-xl font-semibold">{t("weather.for", { place: location.label })}</p>}
+      {location && (
+        <p className="text-xl font-semibold">
+          {location.source === "manual-district" ? t("weather.forDistrict", { district: location.district }) : t("weather.for", { place: location.label })}
+        </p>
+      )}
 
       {state.status === "loading" && <Notice>{t("weather.loading")}</Notice>}
       {refreshedAt && state.status === "ready" && <Notice>{t("weather.refreshed", { time: formatTime(refreshedAt, lang) })}</Notice>}

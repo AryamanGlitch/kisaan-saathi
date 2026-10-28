@@ -25,6 +25,8 @@ test("not configured: listed districts still work from the centre table; others 
   assert.equal(r.data.candidates[0]?.district, "North Goa");
   const v = await svc.search({ state: "Goa", district: "North Goa", place: "Assagao" });
   assert.ok(v.ok && v.data.precision === "district", "village lookup unavailable → district centre");
+  assert.equal(v.data.placeLookup, "unavailable", "not 'village not found': the map was never asked");
+  assert.equal(r.data.placeLookup, null, "no village typed");
   const u = await svc.search({ state: "Goa", district: "Nowhere", place: null });
   assert.equal(u.ok ? null : u.error.code, "NOT_CONFIGURED");
   assert.equal(f.calls.length, 0);
@@ -56,7 +58,17 @@ test("search falls back to the district centre when the village is not found", a
   assert.equal(r.data.precision, "district");
   assert.equal(r.data.candidates.length, 1);
   assert.equal(r.data.candidates[0]?.label, "Dehradun, Uttarakhand");
+  assert.equal(r.data.placeLookup, "not-found");
   assert.equal(f.calls.length, 1);
+});
+
+test("search: map service failing for the village → district centre, reported as unavailable", async () => {
+  const impl: typeof fetch = async () => new Response("busy", { status: 503 });
+  const r = await createGeocodeService({ config, fetchImpl: impl, schedule: immediate }).search({ state: "Uttarakhand", district: "Dehradun", place: "Doiwala" });
+  assert.ok(r.ok);
+  assert.equal(r.data.precision, "district");
+  assert.equal(r.data.placeLookup, "unavailable");
+  assert.equal(r.data.candidates[0]?.place, null);
 });
 
 test("village results: chosen state and nearest the district first, district centre offered last", async () => {
@@ -68,6 +80,7 @@ test("village results: chosen state and nearest the district first, district cen
   const r = await createGeocodeService({ config, fetchImpl: f.impl, schedule: immediate }).search({ state: "Uttarakhand", district: "Dehradun", place: "Rampur" });
   assert.ok(r.ok);
   assert.equal(r.data.precision, "place");
+  assert.equal(r.data.placeLookup, "found");
   assert.deepEqual(r.data.candidates.map((c) => c.district), ["Dehradun", "Haridwar", null, "Dehradun"]);
   assert.equal(r.data.candidates.at(-1)?.place, null);
 });

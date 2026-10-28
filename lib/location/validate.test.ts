@@ -66,6 +66,8 @@ test("isSavedLocation accepts valid and rejects inconsistent records", () => {
   assert.ok(!isSavedLocation({ ...good, lat: null })); // lat without lon
   assert.ok(!isSavedLocation({ ...good, lat: null, lon: null })); // gps source but no coords
   assert.ok(!isSavedLocation({ ...good, source: "manual-unverified" })); // unverified but has coords
+  assert.ok(isSavedLocation({ ...good, place: "Doiwala", label: "Doiwala, Dehradun, Uttarakhand", accuracyM: null, source: "manual-district" }));
+  assert.ok(!isSavedLocation({ ...good, lat: null, lon: null, source: "manual-district" })); // district centre needs coords
   assert.ok(!isSavedLocation({ ...good, lat: 51.5, lon: -0.1 }));
   assert.ok(!isSavedLocation({ ...good, version: 2 }));
   assert.ok(!isSavedLocation({ ...good, pin: "12" }));

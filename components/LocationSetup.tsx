@@ -190,8 +190,10 @@ export function LocationSetup({ onSaved }: { onSaved?: () => void }) {
   }
 
   // step.name === "pick"
-  const { candidates, precision } = step.result;
+  const { candidates, placeLookup } = step.result;
   const chosen = candidates[picked];
+  // A district centre chosen after typing a village must not be saved as "found on the map".
+  const pickSource: SavedLocation["source"] = chosen?.place === null && step.values.place.trim() ? "manual-district" : "manual-geocoded";
   return (
     <section className="space-y-5">
       <h2 className="text-2xl font-extrabold">{t("location.pickTitle")}</h2>
@@ -199,7 +201,13 @@ export function LocationSetup({ onSaved }: { onSaved?: () => void }) {
         <Notice tone="caution">{t("location.noResults")}</Notice>
       ) : (
         <>
-          {precision === "district" && step.values.place.trim() && <Notice tone="caution">{t("location.districtOnly")}</Notice>}
+          {placeLookup === "not-found" && <Notice tone="caution">{t("location.districtOnly")}</Notice>}
+          {placeLookup === "unavailable" && (
+            <>
+              <Notice tone="caution">{t("location.placeUnavailable")}</Notice>
+              <Button variant="secondary" onClick={() => void search(step.values)}>{t("common.tryAgain")}</Button>
+            </>
+          )}
           <fieldset className="space-y-3">
             <legend className="sr-only">{t("location.pickTitle")}</legend>
             {candidates.map((c, i) => (
@@ -216,7 +224,7 @@ export function LocationSetup({ onSaved }: { onSaved?: () => void }) {
           </fieldset>
           <Button
             disabled={!chosen}
-            onClick={() => chosen && finish(fromForm(step.values, { lat: roundCoord(chosen.lat), lon: roundCoord(chosen.lon), accuracyM: null }, "manual-geocoded"))}
+            onClick={() => chosen && finish(fromForm(step.values, { lat: roundCoord(chosen.lat), lon: roundCoord(chosen.lon), accuracyM: null }, pickSource))}
           >
             {t("location.saveSelected")}
           </Button>

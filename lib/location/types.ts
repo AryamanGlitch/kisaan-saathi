@@ -1,4 +1,5 @@
-export type LocationSource = "gps" | "manual-geocoded" | "manual-unverified";
+/** "manual-district": the farmer typed a village, but the map position saved is the district centre. */
+export type LocationSource = "gps" | "manual-geocoded" | "manual-district" | "manual-unverified";
 
 /** Everything the app stores about a farmer's location — nothing more. Saved on the device only. */
 export interface SavedLocation {
@@ -35,7 +36,11 @@ export interface RankedCandidate extends PlaceCandidate {
 
 export type SearchPrecision = "place" | "district";
 
+/** What happened to the typed village: null when none was typed. "unavailable" = map search failed or isn't set up. */
+export type PlaceLookup = "found" | "not-found" | "unavailable" | null;
+
 export interface SearchResponse {
   candidates: RankedCandidate[];
   precision: SearchPrecision;
+  placeLookup: PlaceLookup;
 }

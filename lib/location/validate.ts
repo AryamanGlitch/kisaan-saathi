@@ -72,7 +72,7 @@ export function buildLabel(parts: Array<string | null | undefined>): string {
   return out.join(", ");
 }
 
-const SOURCES: readonly LocationSource[] = ["gps", "manual-geocoded", "manual-unverified"];
+const SOURCES: readonly LocationSource[] = ["gps", "manual-geocoded", "manual-district", "manual-unverified"];
 
 /** Validates data read back from device storage (it may be old, corrupt or edited). */
 export function isSavedLocation(x: unknown): x is SavedLocation {

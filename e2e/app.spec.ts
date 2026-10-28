@@ -46,7 +46,7 @@ async function seed(page: Page, opts: { location?: boolean; lang?: "en" | "hi" }
 
 test("first visit: choose language, then set location by typing", async ({ page }) => {
   await page.route("**/api/location/search**", (r) =>
-    r.fulfill({ json: { ok: true, data: { precision: "place", candidates: [{ label: "Rampur, Dehradun, Uttarakhand", lat: 30.3165, lon: 78.0322, state: "Uttarakhand", district: "Dehradun", place: "Rampur", postcode: "248001", countryCode: "in", matchesState: true }] } } }));
+    r.fulfill({ json: { ok: true, data: { precision: "place", placeLookup: "found", candidates: [{ label: "Rampur, Dehradun, Uttarakhand", lat: 30.3165, lon: 78.0322, state: "Uttarakhand", district: "Dehradun", place: "Rampur", postcode: "248001", countryCode: "in", matchesState: true }] } } }));
   await page.route("**/api/weather**", (r) => r.fulfill({ json: weatherPayload() }));
   await page.goto("/");
   await page.getByRole("button", { name: "English" }).click();
@@ -61,6 +61,26 @@ test("first visit: choose language, then set location by typing", async ({ page 
   await expect(page.getByText("Location saved.")).toBeVisible();
   await page.goto("/");
   await expect(page.getByText("Today on your farm")).toBeVisible();
+});
+
+test("village lookup unavailable: says so honestly, and a district centre is never saved as 'found on the map'", async ({ page }) => {
+  await seed(page, { location: false });
+  await page.route("**/api/location/search**", (r) =>
+    r.fulfill({ json: { ok: true, data: { precision: "district", placeLookup: "unavailable", candidates: [{ label: "Dehradun, Uttarakhand", lat: 30.5, lon: 77.863, state: "Uttarakhand", district: "Dehradun", place: null, postcode: null, countryCode: "in", matchesState: true }] } } }));
+  await page.goto("/my-farm");
+  await page.getByRole("button", { name: "Type my village and district" }).click();
+  await page.getByLabel("State").selectOption("Uttarakhand");
+  await page.getByLabel("District").selectOption("Dehradun");
+  await page.getByLabel("Village or town (optional)").fill("Doiwala");
+  await page.getByRole("button", { name: "Find my area" }).click();
+  await expect(page.getByText("We could not search the map for your village right now")).toBeVisible();
+  await expect(page.getByText("Your village was not found on the map")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+  await page.getByRole("button", { name: "Save selected area" }).click();
+  await expect(page.getByText("The map position is the district centre")).toBeVisible();
+  await expect(page.getByText("Typed by you and found on the map")).toHaveCount(0);
+  await page.goto("/weather");
+  await expect(page.getByText("For Dehradun district (district centre)")).toBeVisible();
 });
 
 test("location permission denied: app explains and offers the form", async ({ page, context }) => {
